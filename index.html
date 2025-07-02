@@ -35,7 +35,6 @@
   <div id="contador"></div>
   <canvas id="gameCanvas" width="600" height="400"></canvas>
   <script>
-
     let jogoPausado = true;
     comecarJogo();
 
@@ -43,12 +42,12 @@
       iniciarContador(() => {
         jogoPausado = false;
         gameLoop();
-      })
+      });
     }
 
     function iniciarContador(callbackDepois) {
       let contador = 3;
-      const elemento = document.getElementById('contador')
+      const elemento = document.getElementById('contador');
       elemento.innerText = contador;
 
       const intervalo = setInterval(() => {
@@ -65,9 +64,6 @@
       }, 1000);
     }
 
-
-
-
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
 
@@ -78,12 +74,68 @@
 
     let ballX = canvas.width / 2;
     let ballY = canvas.height / 2;
-    let ballSpeedX = 5;
-    let ballSpeedY = 4;
+    let ballSpeedX = 3;
+    let ballSpeedY = 2;
     const ballSize = 10;
 
     let playerScore = 0;
     let aiScore = 0;
+
+    const numEstrelas = 100;
+    const estrelas = [];
+
+    for (let i = 0; i < numEstrelas; i++) {
+      estrelas.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        raio: Math.random() * 1.5 + 0.5,
+        brilho: Math.random(),
+        velocidade: Math.random() * 0.02 + 0.01
+      });
+    }
+
+    function desenharEstrelas() {
+      for (let estrela of estrelas) {
+        estrela.brilho += estrela.velocidade;
+        if (estrela.brilho >= 1 || estrela.brilho <= 0) {
+          estrela.velocidade *= -1;
+        }
+        ctx.beginPath();
+        ctx.arc(estrela.x, estrela.y, estrela.raio, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255, 255, 255, ${estrela.brilho})`;
+        ctx.fill();
+      }
+    }
+
+    const numLinhas = 20;
+    const linhas = [];
+
+    for (let i = 0; i < numLinhas; i++) {
+      linhas.push({
+        y: i * (canvas.height / numLinhas),
+        x: Math.random() * canvas.width,
+        largura: Math.random() * 100 + 50,
+        velocidade: Math.random() * 0.5 + 0.5
+      });
+    }
+
+    function desenharLinhas() {
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+      ctx.lineWidth = 1;
+
+      for (let linha of linhas) {
+        linha.x -= linha.velocidade;
+        if (linha.x + linha.largura < 0) {
+          linha.x = canvas.width;
+          linha.largura = Math.random() * 100 + 50;
+        }
+
+        ctx.beginPath();
+        ctx.moveTo(linha.x, linha.y);
+        ctx.lineTo(linha.x + linha.largura, linha.y);
+        ctx.stroke();
+      }
+    }
 
     document.addEventListener('keydown', (e) => {
       if (e.key === 'ArrowUp') playerY -= paddleSpeed;
@@ -127,17 +179,14 @@
       ballX += ballSpeedX;
       ballY += ballSpeedY;
 
-      // colisão com topo e base
       if (ballY <= 0 || ballY + ballSize >= canvas.height) {
         ballSpeedY *= -1;
       }
 
-      // IA simples
       const aiCenter = aiY + paddleHeight / 2;
       if (aiCenter < ballY) aiY += 3;
       else aiY -= 3;
 
-      // colisão com jogador
       if (
         ballX <= paddleWidth &&
         ballY + ballSize >= playerY &&
@@ -146,7 +195,6 @@
         ballSpeedX *= -1;
       }
 
-      // colisão com IA
       if (
         ballX + ballSize >= canvas.width - paddleWidth &&
         ballY + ballSize >= aiY &&
@@ -155,7 +203,6 @@
         ballSpeedX *= -1;
       }
 
-      // pontuação
       if (ballX < 0) {
         aiScore++;
         resetBall();
@@ -167,7 +214,12 @@
 
     function render() {
       drawRect(0, 0, canvas.width, canvas.height, 'black');
-      if(jogoPausado) return;
+
+      desenharEstrelas(); // fundo com estrelas
+      desenharLinhas();   // fundo com linhas horizontais
+
+      if (jogoPausado) return;
+
       drawRect(0, playerY, paddleWidth, paddleHeight, 'white');
       drawRect(canvas.width - paddleWidth, aiY, paddleWidth, paddleHeight, 'white');
       drawCircle(ballX, ballY, ballSize, 'white');
@@ -179,7 +231,8 @@
       update();
       render();
       requestAnimationFrame(gameLoop);
-    }    
+    }
+
   </script>
 </body>
 
