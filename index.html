@@ -74,12 +74,25 @@
 
     let ballX = canvas.width / 2;
     let ballY = canvas.height / 2;
-    let ballSpeedX = 3;
-    let ballSpeedY = 2;
+    let ballSpeedX = 5;
+    let ballSpeedY = 4;
     const ballSize = 10;
 
     let playerScore = 0;
     let aiScore = 0;
+
+    let faseAtual = 1;
+    let ultimaPontuacaoFase = 0;
+
+    let mostrarMensagemFase = false;
+    function exibirmensagemNovaFase(){
+      mostrarMensagemFase = true;
+      setTimeout(()=>{
+        mostrarMensagemFase = false;
+      }, 2000);
+    }
+
+
 
     const numEstrelas = 100;
     const estrelas = [];
@@ -206,17 +219,33 @@
       if (ballX < 0) {
         aiScore++;
         resetBall();
-      } else if (ballX > canvas.width) {
+      } else if (ballX > canvas.width){
         playerScore++;
-        resetBall();
+      
+      
+      if(playerScore % 5 === 0 && playerScore !== ultimaPontuacaoFase){
+        faseAtual++;
+        ultimaPontuacaoFase = playerScore
+        ballSpeedX*=1.06;
+        ballSpeedY*=1.06;
+        exibirmensagemNovaFase();
       }
+      resetBall();
     }
+  }
 
     function render() {
       drawRect(0, 0, canvas.width, canvas.height, 'black');
 
       desenharEstrelas(); // fundo com estrelas
       desenharLinhas();   // fundo com linhas horizontais
+
+      if(mostrarMensagemFase){
+        ctx.fillStyle = 'yellow';
+        ctx.font = '40px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('Nova Fase!!!', canvas.width / 2, canvas.height / 2); 
+      }
 
       if (jogoPausado) return;
 
@@ -225,6 +254,7 @@
       drawCircle(ballX, ballY, ballSize, 'white');
       drawText(`Jogador: ${playerScore}`, 20, 20);
       drawText(`Computador: ${aiScore}`, canvas.width - 150, 20);
+      drawText(`Fase: ${faseAtual}`, canvas.width / 2 - 30, 20);
     }
 
     function gameLoop() {
